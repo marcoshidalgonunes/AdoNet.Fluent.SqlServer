@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	  <FileVersion>1.0.3.0</FileVersion>
+	  <AssemblyVersion>1.0.3.0</AssemblyVersion>
+	  <Description>
+		  This library offers another abstraction layer to Ado.Net, as LINQ does. It is aimed to deliver a higher performance than Entity Framework because combines the ease of fluent notation with direct call to ADO,NET classes.
+
+		  As pure ADO.NET, the AdoNet.Fluent.SqlServer implementation demands a knowledge of database to be used, including SQL commands. The benefit is a code easier to be developed, suitable to be used with AI helpers such as GitHub Copilot, in order to achieve a godd development productivity along with better performance.
+
+		  AdoNetCore fits in development of containerized microservices that use relational databases and requires high throughput.
+	  </Description>
+	  <Title>AdoNet.Fluent.SqlServer</Title>
+	  <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <Authors>Marcos Hidalgo Nunes</Authors>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Resources.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Resources.resx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AdoNet.Fluent" Version="0.9.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Resources\Messages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Messages.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Messages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Messages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
