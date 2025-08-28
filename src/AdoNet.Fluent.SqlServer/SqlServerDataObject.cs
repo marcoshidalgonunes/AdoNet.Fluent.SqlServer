@@ -8,21 +8,25 @@ using Microsoft.Data.SqlClient;
 
 namespace AdoNet.Fluent.SqlServer;
 
+/// <summary>
+/// Base class for operations on SQL Server databases.
+/// </summary>
 public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand, SqlParameter, SqlException>
 {
-    #region Constructor
-
-    protected SqlServerDataObject(string connectionString, ConnectionMode mode) 
+    ///<summary>
+    /// Class constructor.
+    ///</summary>
+    /// <param name="connectionString">Database connection string.</param>
+    /// <param name="mode"><see cref="ConnectionMode"/> (normal, with transactios or using MARS).</param>
+    protected SqlServerDataObject(string connectionString, ConnectionMode mode)
         : base(connectionString, mode)
     {
         ForeignKeyError = 547;
         PrimaryKeyError = 2627;
         DuplicateKeyError = 2601;
-        
+
         errorCodes = [ForeignKeyError, DuplicateKeyError, PrimaryKeyError];
     }
-
-    #endregion
 
     #region Protected/Private Members
 
@@ -30,11 +34,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     private readonly HashSet<int> errorCodes;
 
     /// <summary>
-    /// Cria parâmetro de entrada do tipo "boolean" para instrução de banco de dados.
+    /// Creates input/output parameter of boolean type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <param name="direction">Parameter <seealso cref="ParameterDirection">direction</seealso>.</param>
+    /// <exception cref="ArgumentNullException" />
     protected override void AddInOutParameter(string parameterName, bool value, ParameterDirection direction)
     {
         CheckParameter(parameterName);
@@ -46,14 +51,15 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de entrada do tipo "decimal" para instrução de banco de dados.
+    /// Creates input/output parameter of decimal type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="scale">Escala do parâmetro.</param>
-    /// <param name="precision">Precisão do parâmetro.</param>
-    /// <param name="direction">Direção do parâmetro ("input" ou "input/output").</param>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.ArgumentOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="scale">Parameter scale.</param>
+    /// <param name="precision">Parameter precision.</param>
+    /// <param name="direction">Parameter <seealso cref="Data.ParameterDirection">direction</seealso>.</param>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="ArgumentOutOfRangeException" />
+    /// <remarks>For <seealso cref="IDbCommand.Prepare">prepared</seealso> instructions.</remarks>
     protected override void AddInOutParameter(string parameterName, byte precision, byte scale, ParameterDirection direction)
     {
         CheckParameter(parameterName, precision, scale);
@@ -61,11 +67,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de entrada do tipo "Byte" para instrução de banco de dados.
+    /// Creates input/output parameter of byte type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <param name="direction">Parameter <seealso cref="ParameterDirection">direction</seealso>.</param>
+    /// <exception cref="ArgumentNullException" />
     protected override void AddInOutParameter(string parameterName, byte? value, ParameterDirection direction)
     {
         CheckParameter(parameterName);
@@ -77,11 +84,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de entrada do tipo "DateTime" para instrução de banco de dados.
+    /// Creates input/output parameter of <see cref="DateTime"/> type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <param name="direction">Parameter <seealso cref="ParameterDirection">direction</seealso>.</param>
+    /// <exception cref="ArgumentNullException" />
     protected override void AddInOutParameter(string parameterName, DateTime? value, ParameterDirection direction)
     {
         CheckParameter(parameterName);
@@ -93,13 +101,14 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de entrada do tipo "Decimal" para instrução de banco de dados.
+    /// Creates input/output parameter of decimal type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <param name="scale">Escala do parâmetro.</param>
-    /// <param name="precision">Precisão do parâmetro.</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <param name="precision">Parameter precision.</param>
+    /// <param name="scale">Parameter scale.</param>
+    /// <param name="direction">Parameter <seealso cref="Data.ParameterDirection">direction</seealso>.</param>
+    /// <exception cref="ArgumentNullException" />
     protected override void AddInOutParameter(string parameterName, decimal? value, byte precision, byte scale, ParameterDirection direction)
     {
         CheckParameter(parameterName);
@@ -111,11 +120,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de entrada do tipo "Double" para instrução de banco de dados.
+    /// Creates input/output parameter of double type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <param name="direction">Parameter <seealso cref="Data.ParameterDirection">direction</seealso>.</param>
+    /// <exception cref="ArgumentNullException" />
     protected override void AddInOutParameter(string parameterName, double? value, ParameterDirection direction)
     {
         CheckParameter(parameterName);
@@ -127,11 +137,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de entrada do tipo "Int16" para instrução de banco de dados.
+    /// Creates input/output parameter of short type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <param name="direction">Parameter <seealso cref="Data.ParameterDirection">direction</seealso>.</param>
+    /// <exception cref="ArgumentNullException" />
     protected override void AddInOutParameter(string parameterName, short? value, ParameterDirection direction)
     {
         CheckParameter(parameterName);
@@ -143,11 +154,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de entrada do tipo "Int32" para instrução de banco de dados.
+    /// Creates input/output parameter of int type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <param name="direction">Parameter <seealso cref="ParameterDirection">direction</seealso>.</param>
+    /// <exception cref="ArgumentNullException" />
     protected override void AddInOutParameter(string parameterName, int? value, ParameterDirection direction)
     {
         CheckParameter(parameterName);
@@ -159,11 +171,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de entrada do tipo "Int64" para instrução de banco de dados.
+    /// Creates input/output parameter of long type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <param name="direction">Parameter <seealso cref="ParameterDirection">direction</seealso>.</param>
+    /// <exception cref="ArgumentNullException" />
     protected override void AddInOutParameter(string parameterName, long? value, ParameterDirection direction)
     {
         CheckParameter(parameterName);
@@ -175,11 +188,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de entrada do tipo "Single" para instrução de banco de dados.
+    /// Creates input/output parameter of single type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <param name="direction">Parameter <seealso cref="ParameterDirection">direction</seealso>.</param>
+    /// <exception cref="ArgumentNullException" />
     protected override void AddInOutParameter(string parameterName, float? value, ParameterDirection direction)
     {
         CheckParameter(parameterName);
@@ -192,14 +206,15 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
 
 
     /// <summary>
-    /// Cria parâmetro bidirecional do tipo "String" para instrução de banco de dados.
+    /// Creates input/output parameter of string type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <param name="size">Tamanho máximo da string.</param>
-    /// <param name="variable">Verdadeiro se string tem tamanho variável.</param>
-    /// <param name="direction">Direção do parâmetro ("input" ou "input/output").</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <param name="size">Maximum size of string.</param>
+    /// <param name="variable">Flag for variable size.</param>
+    /// <param name="direction">Parameter <seealso cref="ParameterDirection">direction</seealso>.</param>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="ArgumentOutOfRangeException" />
     protected override void AddInOutParameter(string parameterName, string? value, int size, bool variable, ParameterDirection direction)
     {
         CheckParameter(parameterName);
@@ -218,12 +233,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro numérico.
+    /// Creates numeric parameter.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="type">Tipo <see cref="Op2b.Data.NumericType">numérico</see> do parâmetro.</param>
-    /// <param name="direction">Direção do parâmetro ("input" ou "output").</param>
-    /// <returns>Instância de parâmetro numérico</returns>
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="type"><see cref="NumericType"/> parameter.</param>
+    /// /// <param name="direction">Parameter <seealso cref="ParameterDirection">direction</seealso>.</param>
+    /// <returns>Numeric parameter instance</returns>
     protected override SqlParameter CreateParameter(string parameterName, NumericType type, ParameterDirection direction)
     {
         SqlDbType sqlType = SqlDbType.Bit;
@@ -266,13 +281,13 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro do tipo "Decimal".
+    /// Creates parameter of decimal type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="direction">Direção do parâmetro ("input" ou "output").</param>
-    /// <param name="scale">Escala do parâmetro.</param>
-    /// <param name="precision">Precisão do parâmetro.</param>
-    /// <returns>Instância de parâmetro do tipo "Decimal".</returns>
+    /// <param name="parameterName">Parameter name.</param>
+    /// /// <param name="direction">Parameter <seealso cref="ParameterDirection">direction</seealso>.</param>
+    /// <param name="scale">Parameter scale.</param>
+    /// <param name="precision">Parameter precision.</param>
+    /// <returns>Parameter instance of decimal type.</returns>
     protected override SqlParameter CreateParameter(string parameterName, ParameterDirection direction, byte precision, byte scale)
     {
         SqlParameter par = CreateParameter(parameterName, SqlDbType.Decimal, direction);
@@ -283,13 +298,13 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro do tipo "String".
+    /// Creates parameter of string type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="direction">Direção do parâmetro (entrada, saída ou ambos).</param>
-    /// <param name="size">Tamanho máximo da string.</param>
-    /// <param name="variable">Verdadeiro se string tem tamanho variável.</param>
-    /// <returns>Instância de parâmetro do tipo "String".</returns>
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="direction">Parameter direction ("input", "output" ou "inputoutput").</param>
+    /// <param name="size">Maximum size of string.</param>
+    /// <param name="variable">Flag for variable size.</param>
+    /// <returns>Parameter instance of string type.</returns>
     protected override SqlParameter CreateParameter(string parameterName, ParameterDirection direction, int size, bool variable)
     {
         SqlParameter par = CreateParameter(parameterName, (variable ? SqlDbType.NVarChar : SqlDbType.NChar));
@@ -328,12 +343,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Recupera parâmtro da coleção.
+    /// Returns parameter from <see cref="SqlCommand.Parameters"/> collection.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Instância do parâmetro.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Parameter instance.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     protected override SqlParameter GetParameter(string parameterName)
     {
         CheckParameter(parameterName);
@@ -341,11 +356,11 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Trata exceção disparada na chamada ao banco de dados.
+    /// Handles exception thrown in SQL Server command execution.
     /// </summary>
-    /// <param name="ex">Exceção disparada na chamada ao banco de dados.</param>
-    /// <exception cref="System.InvalidOperationException" />
-    /// <exception cref="System.Data.ConstraintException" />
+    /// <param name="ex">Exception thrown in SQL Server command execution.</param>
+    /// <exception cref="InvalidOperationException" />
+    /// <exception cref="Data.ConstraintException" />
     /// <exception cref="Microsoft.Data.SqlClient.SqlException" />
     protected override void HandleException(SqlException ex)
     {
@@ -380,12 +395,14 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     #region IDataObject Members
 
     /// <summary>
-    /// Cria parâmetro bidirecional do tipo "String" para instrução de banco de dados.
+    /// Creates input/output parameter of string type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <param name="size">Tamanho máximo da string.</param>
-    /// <param name="variable">Verdadeiro se string tem tamanho variável.</param>
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <param name="size">Maximum size of string.</param>
+    /// <param name="variable">Flag for variable size.</param>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="ArgumentOutOfRangeException" />
     public override IDataObject AddInOutParameter(string parameterName, string? value, int size, bool variable)
     {
         AddInOutParameter(parameterName, value, size, variable, ParameterDirection.InputOutput);
@@ -393,24 +410,11 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de entrada do tipo "Xml" para instrução de banco de dados.
+    /// Creates input parameter of binary data for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <exception cref="System.ArgumentNullException" />
-    public override IDataObject AddInParameter(string parameterName)
-    {
-        CheckParameter(parameterName);
-        Command.Parameters.Add(CreateParameter(parameterName, ParameterDirection.Input));
-
-        return this;
-    }
-
-    /// <summary>
-    /// Cria parâmetro de entrada de dados binários para instrução de banco de dados.
-    /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject AddInParameter(string parameterName, byte[] value)
     {
         CheckParameter(parameterName);
@@ -427,11 +431,11 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de entrada para coleção de dados.
+    /// Creates input parameter for table-valued type (TVP) for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="parameterTypeName">Tipo definido pelo usuário (UDT) no banco de dados.</param>
-    /// <param name="dt">"Data Table" com a coleção de dados.</param>
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="parameterTypeName">Database user-defined type (UDT).</param>
+    /// <param name="dt"><see cref="DataTable"/> for table-valued type.</param>
     public override IDataObject AddInParameter(string parameterName, string parameterTypeName, DataTable dt)
     {
         SqlParameter par = CreateParameter(parameterName, SqlDbType.Structured, ParameterDirection.Input);
@@ -447,13 +451,13 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de entrada do tipo "String" para instrução de banco de dados.
+    /// Creates input parameter of string type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <param name="size">Tamanho máximo da string.</param>
-    /// <param name="variable">Verdadeiro se string tem tamanho variável.</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <param name="size">Maximum size of string.</param>
+    /// <param name="variable">Flag for variable size.</param>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject AddInParameter(string parameterName, string? value, int size, bool variable)
     {
         AddInOutParameter(parameterName, value, size, variable, ParameterDirection.Input);
@@ -461,11 +465,11 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de entrada do tipo "Xml" para instrução de banco de dados.
+    /// Creates input parameter of XML type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">XmlReader com o conteúdo XML a ser passado para o parâmetro.</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value"><see cref="XmlReader"/> with XML content to be set as parameter value.</param>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject AddInParameter(string parameterName, XmlReader value)
     {
         CheckParameter(parameterName);
@@ -482,10 +486,23 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Cria parâmetro de saída do tipo "Xml" para instrução de banco de dados.
+    /// Creates input parameter of XML type for database statement.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <exception cref="ArgumentNullException" />
+    public override IDataObject AddInParameter(string parameterName)
+    {
+        CheckParameter(parameterName);
+        Command.Parameters.Add(CreateParameter(parameterName, ParameterDirection.Input));
+
+        return this;
+    }
+
+    /// <summary>
+    /// Creates output parameter of XML type for database statement.
+    /// </summary>
+    /// <param name="parameterName">Parameter name.</param>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject AddOutParameter(string parameterName)
     {
         CheckParameter(parameterName);
@@ -495,10 +512,10 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída em dados binários.
+    /// Returns output parameter value in binary data.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
     public override byte[]? GetBinary(string parameterName)
     {
         SqlParameter par = GetParameter(parameterName);
@@ -511,192 +528,190 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Boolean".
+    /// Returns output parameter value of boolean type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override bool GetBoolean(string parameterName)
     {
         return Parameter<SqlParameter, bool>.GetValue(GetParameter(parameterName), false);
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Boolean".
+    /// Returns output parameter value of boolean type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override bool? GetBooleanOrNull(string parameterName)
     {
         return Parameter<SqlParameter, bool>.GetValue(GetParameter(parameterName));
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Byte".
+    /// Returns output parameter value of byte type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override byte GetByte(string parameterName)
     {
         return Parameter<SqlParameter, byte>.GetValue(GetParameter(parameterName), 0);
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Byte".
+    /// Returns output parameter value of byte type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override byte? GetByteOrNull(string parameterName)
     {
         return Parameter<SqlParameter, byte>.GetValue(GetParameter(parameterName));
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "DateTime".
+    /// Returns output parameter value of type <see cref="DateTime"/>.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override DateTime GetDateTime(string parameterName)
     {
         return Parameter<SqlParameter, DateTime>.GetValue(GetParameter(parameterName), DateTime.MinValue);
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "DateTime".
+    /// Returns output parameter value of type <see cref="DateTime"/>.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override DateTime? GetDateTimeOrNull(string parameterName)
     {
         return Parameter<SqlParameter, DateTime>.GetValue(GetParameter(parameterName));
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Decimal".
+    /// Returns output parameter value of decimal type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override decimal GetDecimal(string parameterName)
     {
         return Parameter<SqlParameter, decimal>.GetValue(GetParameter(parameterName), 0);
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Decimal".
+    /// Returns output parameter value of decimal type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override decimal? GetDecimalOrNull(string parameterName)
     {
         return Parameter<SqlParameter, decimal>.GetValue(GetParameter(parameterName));
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Double".
+    /// Returns output parameter value of double type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override double GetDouble(string parameterName)
     {
         return Parameter<SqlParameter, double>.GetValue(GetParameter(parameterName), 0);
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Double".
+    /// Returns output parameter value of double type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override double? GetDoubleOrNull(string parameterName)
     {
         return Parameter<SqlParameter, double>.GetValue(GetParameter(parameterName));
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Int16".
+    /// Returns output parameter value of short type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override short GetInt16(string parameterName)
     {
         return Parameter<SqlParameter, short>.GetValue(GetParameter(parameterName), 0);
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Int16".
+    /// Returns output parameter value of short type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override short? GetInt16OrNull(string parameterName)
     {
         return Parameter<SqlParameter, short>.GetValue(GetParameter(parameterName));
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Int32".
+    /// Returns output parameter value of int type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override int GetInt32(string parameterName)
     {
         return Parameter<SqlParameter, int>.GetValue(GetParameter(parameterName), 0);
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Int32".
+    /// Returns output parameter value of int type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override int? GetInt32OrNull(string parameterName)
     {
         return Parameter<SqlParameter, int>.GetValue(GetParameter(parameterName));
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Int64".
+    /// Returns output parameter value of long type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override long GetInt64(string parameterName)
     {
         return Parameter<SqlParameter, long>.GetValue(GetParameter(parameterName), 0);
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Int64".
+    /// Returns output parameter value of long type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override long? GetInt64OrNull(string parameterName)
     {
         return Parameter<SqlParameter, long>.GetValue(GetParameter(parameterName));
@@ -707,32 +722,32 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     /// </summary>
     /// <param name="parameterName">Nome do parâmetro.</param>
     /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override float GetSingle(string parameterName)
     {
         return Parameter<SqlParameter, float>.GetValue(GetParameter(parameterName), 0);
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Single".
+    /// Returns output parameter value of single type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override float? GetSingleOrNull(string parameterName)
     {
         return Parameter<SqlParameter, float>.GetValue(GetParameter(parameterName));
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "String".
+    /// Returns output parameter value of string type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>Valor de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>Output parameter value.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override string GetString(string parameterName)
     {
         SqlParameter par = GetParameter(parameterName);
@@ -740,12 +755,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Retorna valor de parâmetro de saída do tipo "Xml".
+    /// Returns output parameter value XML.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <returns>XmlReader com o conteúdo Xml de parâmetro de saída.</returns>
-    /// <exception cref="System.ArgumentNullException" />
-    /// <exception cref="System.IndexOutOfRangeException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <returns>XmlReader with output parameter Xml content.</returns>
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="IndexOutOfRangeException" />
     public override XmlReader? GetXml(string parameterName)
     {
         SqlParameter par = GetParameter(parameterName);
@@ -757,12 +772,17 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
 
         return null;
     }
+
     /// <summary>
-    /// Executa instrução para consultar linhas em tabelas de banco de dados.
+    /// Executes statement to query rows in SQL Server table.
     /// </summary>
-    /// <param name="setter">"Delegate" para definir posição das colunas de dados da consulta.</param>
-    /// <param name="filler">"Delegate" para preencher dados obtidos na consulta.</param>
-    /// <param name="behavior">Comportamento da consulta.</param>
+    /// <param name="setter">Delegate to set order of columns in query result.</param>
+    /// <param name="filler">Delegate to fill data obtained in query.</param>
+    /// <param name="behavior"><see cref="CommandBehavior"/> of query.</param>
+    /// <exception cref="ArgumentNullException"/>
+    /// <exception cref="InvalidOperationException"/>
+    /// <exception cref="DbException"/>
+    /// <exception cref="ConstraintException"/>
     public override void Read(SetOrdinal setter, Fill filler, CommandBehavior behavior)
     {
         ArgumentNullException.ThrowIfNull(setter);
@@ -780,7 +800,7 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
             OpenConnection();
 
             SqlCommand command = Mode != ConnectionMode.MultipleResultsets ? Command : GetCommand();
-            using DbDataReader reader = command.ExecuteReader(behavior);
+            using SqlDataReader reader = command.ExecuteReader(behavior);
 
             try
             {
@@ -803,12 +823,17 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
             HandleException(ex);
         }
     }
+
     /// <summary>
-    /// Executa instrução assíncrona para consultar linhas em tabelas de banco de dados.
+    /// Executes asynchronously statement to query rows in database table.
     /// </summary>
-    /// <param name="setter">"Delegate" para definir posição das colunas de dados da consulta.</param>
-    /// <param name="filler">"Delegate" para preencher dados obtidos na consulta.</param>
-    /// <param name="cancellationToken">Token para monitorar pedidos de cancelamento.</param>
+    /// <param name="setter">Delegate to set order of columns in query result.</param>
+    /// <param name="filler">Delegate to fill data obtained in query.</param>
+    /// <param name="cancellationToken"><see cref="CancellationToken"/> for request. for request.</param>
+    /// <exception cref="ArgumentException"/>
+    /// <exception cref="ArgumentNullException"/>
+    /// <exception cref="InvalidOperationException"/>
+    /// <exception cref="SqlException"/>
     public override async Task ReadAsync(SetOrdinal setter, Fill filler, CommandBehavior behavior, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(setter);
@@ -826,7 +851,7 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
             await OpenConnectionAsync(cancellationToken);
 
             SqlCommand command = Mode != ConnectionMode.MultipleResultsets ? Command : GetCommand();
-            using DbDataReader reader = await command.ExecuteReaderAsync(behavior, cancellationToken);
+            using SqlDataReader reader = await command.ExecuteReaderAsync(behavior, cancellationToken);
 
             try
             {
@@ -851,11 +876,11 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Executa operação para consulta escalar em banco de dados que retorna valor do tipo "Xml".
+    /// Executes SQL Server statement for scalar query that returns XML.
     /// </summary>
-    /// <param name="filler">"Delegate" para preencher dados em formato XML obtidos na consulta.</param>
-    /// <exception cref="System.InvalidOperationException" />
-    /// <exception cref="System.Data.SqlClient.SqlException" />
+    /// <param name="filler">Delegate to fill data in XML format retrieved in query.</param>
+    /// <exception cref="InvalidOperationException" />
+    /// <exception cref="SqlException" />
     public override void ScalarXml(FillXml filler)
     {
         ArgumentNullException.ThrowIfNull(filler);
@@ -878,23 +903,23 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Executa instrução assíncrona para consulta escalar em banco de dados que retorna valor do tipo "Xml".
+    /// Executes asynchronously SQL Server statement for scalar query that returns XML.
     /// </summary>
-    /// <param name="filler">"Delegate" para preencher dados em formato XML obtidos na consulta.</param>
-    /// <exception cref="System.InvalidOperationException" />
-    /// <exception cref="System.Data.SqlClient.SqlException" />
+    /// <param name="filler">Delegate to fill data in XML format retrieved in query.</param>
+    /// <exception cref="InvalidOperationException" />
+    /// <exception cref="Data.SqlClient.SqlException" />
     public override async Task ScalarXmlAsync(FillXmlAsync filler)
     {
         await Task.Factory.StartNew(() => ScalarXmlAsync(filler, CancellationToken.None));
     }
 
     /// <summary>
-    /// Executa instrução assíncrona para consulta escalar em banco de dados que retorna valor do tipo "Xml".
+    /// Executes asynchronously database statement for scalar query that returns XML.
     /// </summary>
-    /// <param name="filler">"Delegate" para preencher dados em formato XML obtidos na consulta.</param>
-    /// <param name="cancellationToken">Token para monitorar pedidos de cancelamento.</param>
-    /// <exception cref="System.InvalidOperationException" />
-    /// <exception cref="System.Data.SqlClient.SqlException" />
+    /// <param name="filler">Delegate to fill data in XML format retrieved in query.</param>
+    /// <param name="cancellationToken">Cancellation token for request.</param>
+    /// <exception cref="InvalidOperationException" />
+    /// <exception cref="SqlException" />
     public override async Task ScalarXmlAsync(FillXmlAsync filler, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(filler);
@@ -917,12 +942,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Define o valor para parâmetro do tipo "Boolean".
+    /// Set value for parameter of boolean type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <remarks>Para execução de instruções preparadas.</remarks>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <remarks>For <seealso cref="IDbCommand.Prepare">prepared</seealso> instructions.</remarks>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject SetParameter(string parameterName, bool? value)
     {
         GetParameter(parameterName).Value = value.HasValue ? new SqlBoolean(value.Value) : null;
@@ -930,12 +955,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Define o valor para parâmetro do tipo "Byte".
+    /// Set value for parameter of byte type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <remarks>Para execução de instruções preparadas.</remarks>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <remarks>For <seealso cref="IDbCommand.Prepare">prepared</seealso> instructions.</remarks>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject SetParameter(string parameterName, byte? value)
     {
         GetParameter(parameterName).Value = value.HasValue ? new SqlByte(value.Value) : null;
@@ -943,12 +968,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Define o valor para parâmetro do tipo "DateTime".
+    /// Set value for parameter of <see cref="DateTime"/>.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <remarks>Para execução de instruções preparadas.</remarks>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <remarks>For <seealso cref="IDbCommand.Prepare">prepared</seealso> instructions.</remarks>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject SetParameter(string parameterName, DateTime? value)
     {
         GetParameter(parameterName).Value = value.HasValue ? new SqlDateTime(value.Value) : null;
@@ -956,12 +981,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Define o valor para parâmetro do tipo "Decimal".
+    /// Set value for parameter of decimal type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <remarks>Para execução de instruções preparadas.</remarks>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <remarks>For <seealso cref="IDbCommand.Prepare">prepared</seealso> instructions.</remarks>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject SetParameter(string parameterName, decimal? value)
     {
         GetParameter(parameterName).Value = value.HasValue ? new SqlDecimal(value.Value) : null;
@@ -969,12 +994,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Define o valor para parâmetro do tipo "Double".
+    /// Set value for parameter of double type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <remarks>Para execução de instruções preparadas.</remarks>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <remarks>For <seealso cref="IDbCommand.Prepare">prepared</seealso> instructions.</remarks>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject SetParameter(string parameterName, double? value)
     {
         GetParameter(parameterName).Value = value.HasValue ? new SqlDouble(value.Value) : null;
@@ -982,12 +1007,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Define o valor para parâmetro do tipo "Int16".
+    /// Set value for parameter of short type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <remarks>Para execução de instruções preparadas.</remarks>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <remarks>For <seealso cref="IDbCommand.Prepare">prepared</seealso> instructions.</remarks>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject SetParameter(string parameterName, short? value)
     {
         GetParameter(parameterName).Value = value.HasValue ? new SqlInt16(value.Value) : null;
@@ -995,12 +1020,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Define o valor para parâmetro do tipo "Int32".
+    /// Set value for parameter of int type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <remarks>Para execução de instruções preparadas.</remarks>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <remarks>For <seealso cref="IDbCommand.Prepare">prepared</seealso> instructions.</remarks>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject SetParameter(string parameterName, int? value)
     {
         GetParameter(parameterName).Value = value.HasValue ? new SqlInt32(value.Value) : null;
@@ -1008,12 +1033,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Define o valor para parâmetro do tipo "Int64".
+    /// Set value for parameter of long type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <remarks>Para execução de instruções preparadas.</remarks>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <remarks>For <seealso cref="IDbCommand.Prepare">prepared</seealso> instructions.</remarks>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject SetParameter(string parameterName, long? value)
     {
         GetParameter(parameterName).Value = value.HasValue ? new SqlInt64(value.Value) : null;
@@ -1021,12 +1046,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Define o valor para parâmetro do tipo "Single".
+    /// Set value for parameter of single type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <remarks>Para execução de instruções preparadas.</remarks>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <remarks>For <seealso cref="IDbCommand.Prepare">prepared</seealso> instructions.</remarks>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject SetParameter(string parameterName, float? value)
     {
         GetParameter(parameterName).Value = value.HasValue ? new SqlSingle(value.Value) : null;
@@ -1034,12 +1059,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Define o valor para parâmetro do tipo "String".
+    /// Set value for parameter of string type.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">Valor do parâmetro.</param>
-    /// <remarks>Para execução de instruções preparadas.</remarks>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value">Parameter value.</param>
+    /// <remarks>For <seealso cref="IDbCommand.Prepare">prepared</seealso> instructions.</remarks>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject SetParameter(string parameterName, string? value)
     {
         if (!string.IsNullOrEmpty(value))
@@ -1055,12 +1080,12 @@ public abstract class SqlServerDataObject : DataObject<SqlConnection, SqlCommand
     }
 
     /// <summary>
-    /// Define o valor para parâmetro do tipo "Xml".
+    /// Set value for XML parameter.
     /// </summary>
-    /// <param name="parameterName">Nome do parâmetro.</param>
-    /// <param name="value">XmlReader com o contédo do parâmetro.</param>
-    /// <remarks>Para execução de instruções preparadas.</remarks>
-    /// <exception cref="System.ArgumentNullException" />
+    /// <param name="parameterName">Parameter name.</param>
+    /// <param name="value"><see cref="XmlReader"/> with parameter value content.</param>
+    /// <remarks>For <seealso cref="IDbCommand.Prepare">prepared</seealso> instructions.</remarks>
+    /// <exception cref="ArgumentNullException" />
     public override IDataObject SetParameter(string parameterName, XmlReader value)
     {
         GetParameter(parameterName).Value = value != null ? new SqlXml(value) : null;

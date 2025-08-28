@@ -3,6 +3,9 @@ using Microsoft.Data.SqlClient;
 
 namespace AdoNet.Fluent.SqlServer;
 
+/// <summary>
+/// Class for transactions execution in SQL Server.
+/// </summary>
 public sealed class SqlServerTransaction : SqlServerDataObject, ITransaction
 {
     private bool _disposedValue;
@@ -12,6 +15,10 @@ public sealed class SqlServerTransaction : SqlServerDataObject, ITransaction
     internal SqlServerTransaction(string connectionString) 
         : base(connectionString, ConnectionMode.Transational) { }
 
+    /// <summary>
+    /// Disposes resources.
+    /// </summary>
+    /// <param name="disposing">Flag for dispose in execution.</param>
     protected override void Dispose(bool disposing)
     {
         if (!_disposedValue)
@@ -24,6 +31,10 @@ public sealed class SqlServerTransaction : SqlServerDataObject, ITransaction
         }
     }
 
+    /// <summary>
+    /// Opens connection with database.
+    /// </summary>
+    /// <exception cref="SqlException" />
     protected override void OpenConnection()
     {
         Connection ??= new SqlConnection();
@@ -38,6 +49,11 @@ public sealed class SqlServerTransaction : SqlServerDataObject, ITransaction
         Command.Transaction = _transaction;
     }
 
+    /// <summary>
+    /// Asynchronously opens connection with database.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <exception cref="SqlException" />
     protected override async Task OpenConnectionAsync(CancellationToken cancellationToken)
     {
         Connection ??= new SqlConnection();
@@ -54,11 +70,19 @@ public sealed class SqlServerTransaction : SqlServerDataObject, ITransaction
 
     #region ITransaction members
 
+    /// <summary>
+    /// Performs transaction commit.
+    /// </summary>
+    /// <exception cref="InvalidOperationException" />"
     public void Commit()
     {
         _transaction?.Commit();
     }
 
+    /// <summary>
+    /// Performs transaction rollback.
+    /// </summary>
+    /// <exception cref="InvalidOperationException" />"
     public void Rollback()
     {
         _transaction?.Rollback();
