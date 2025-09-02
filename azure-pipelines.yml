@@ -21,7 +21,7 @@ steps:
 - script: dotnet build src/AdoNet.Fluent.SqlServer.sln --configuration $(buildConfiguration) --no-restore
   displayName: 'Build Solution'
 
-- script: dotnet pack src/AdoNet.Fluent.SqlServer/AdoNet.Fluent.SqlServer/AdoNet.Fluent.SqlServer.csproj --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)
+- script: dotnet pack src/AdoNet.Fluent.SqlServer/AdoNet.Fluent.SqlServer.csproj --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)
   displayName: 'Pack Project'
 
 - script: dotnet nuget push $(Build.ArtifactStagingDirectory)/*.nupkg --api-key $(System.AccessToken) --source https://pkgs.dev.azure.com/marcoshidalgonunes/CheckDigit/_packaging/AdoNet/nuget/v3/index.json
