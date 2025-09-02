@@ -15,7 +15,6 @@
 	  </Description>
 	  <Title>AdoNet.Fluent.SqlServer</Title>
 	  <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <Authors>Marcos Hidalgo Nunes</Authors>
 
   </PropertyGroup>
