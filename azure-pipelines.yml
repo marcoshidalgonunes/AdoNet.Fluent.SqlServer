@@ -1,9 +1,7 @@
 trigger: none
 
-pr: none
-
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
 variables:
   buildConfiguration: 'Release'
@@ -12,24 +10,19 @@ steps:
 - task: NuGetAuthenticate@1
   displayName: 'NuGet Authenticate'
 
-- task: DotNetCoreCLI@2
-  displayName: Restore
+- task: UseDotNet@2
   inputs:
-    command: 'restore'
-    projects: '**/*.csproj'
- 
-- task: DotNetCoreCLI@2
-  displayName: Build
-  inputs:
-    command: 'build'
-    projects: '**/*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+    packageType: 'sdk'
+    version: '8.0.100'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'pack'
-    packagesToPack: '**/*.csproj'
-    configuration: $(buildConfiguration)
+- script: dotnet restore src/AdoNet.Fluent.SqlServer.sln
+  displayName: 'Restore NuGet Packages'
 
-- script: dotnet nuget push $(Build.ArtifactStagingDirectory)/*.nupkg --api-key $(System.AccessToken) --source https://pkgs.dev.azure.com/marcoshidalgonunes/AdoNet/_packaging/AdoNet/nuget/v3/index.json
+- script: dotnet build src/AdoNet.Fluent.SqlServer.sln --configuration $(buildConfiguration) --no-restore
+  displayName: 'Build Solution'
+
+- script: dotnet pack src/AdoNet.Fluent.SqlServer/AdoNet.Fluent.SqlServer/AdoNet.Fluent.SqlServer.csproj --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)
+  displayName: 'Pack Project'
+
+- script: dotnet nuget push $(Build.ArtifactStagingDirectory)/*.nupkg --api-key $(System.AccessToken) --source https://pkgs.dev.azure.com/marcoshidalgonunes/CheckDigit/_packaging/AdoNet/nuget/v3/index.json
   displayName: 'Push NuGet Package'
