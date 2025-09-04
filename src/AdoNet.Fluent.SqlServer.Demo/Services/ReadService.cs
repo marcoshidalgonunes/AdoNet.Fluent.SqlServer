@@ -47,9 +47,8 @@ internal sealed class ReadService(ISqlServerStatementBuilder builder) : IReadSer
 
         statement
             .SetStoredProcedure(StoredProcedure)
-            .AddInParameter("BusinessEntityID", id);
-
-        statement.Read(SetOrdinal, Fill);
+            .AddInParameter("BusinessEntityID", id)
+            .Read(SetOrdinal, Fill);
 
         return _hierarchies;
     }
@@ -58,11 +57,10 @@ internal sealed class ReadService(ISqlServerStatementBuilder builder) : IReadSer
     {
         using SqlServerStatement statement = _builder.Build();
 
-        statement
+        await statement
             .SetStoredProcedure(StoredProcedure)
-            .AddInParameter("BusinessEntityID", id);
-
-        await statement.ReadAsync(SetOrdinal, Fill);
+            .AddInParameter("BusinessEntityID", id)
+            .ReadAsync(SetOrdinal, Fill);
         
         return _hierarchies;
     }

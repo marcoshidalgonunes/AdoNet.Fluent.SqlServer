@@ -1,6 +1,5 @@
 ﻿using System.Data;
 using System.Data.Common;
-using AdoNet.Fluent;
 using AdoNet.Fluent.SqlServer.Demo.Models;
 
 namespace AdoNet.Fluent.SqlServer.Demo.Services;
@@ -86,9 +85,8 @@ internal sealed class MARSService(ISqlServerStatementBuilder builder) : IMARSSer
         {
             _statement
                 .SetSql(SelectDepartment)
-                .AddInParameter("GroupName", value, 50);
-
-            _statement.Read(SetOrdinalDepartment, FillDepartment);
+                .AddInParameter("GroupName", value, 50)
+                .Read(SetOrdinalDepartment, FillDepartment);
         }
 
         return _departments;
@@ -98,11 +96,10 @@ internal sealed class MARSService(ISqlServerStatementBuilder builder) : IMARSSer
     {
         using (_statement = _builder.WithMARS().Build())
         {
-            _statement
+            await _statement
                 .SetSql(SelectDepartment)
-                .AddInParameter("GroupName", value, 50);
-
-            await _statement.ReadAsync(SetOrdinalDepartment, FillDepartment);
+                .AddInParameter("GroupName", value, 50)
+                .ReadAsync(SetOrdinalDepartment, FillDepartment);
         }
 
         return _departments;

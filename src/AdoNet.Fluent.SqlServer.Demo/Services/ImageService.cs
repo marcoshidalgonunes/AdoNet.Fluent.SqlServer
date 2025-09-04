@@ -12,22 +12,20 @@ internal class ImageService(ISqlServerStatementBuilder builder) : IImageService
     {
         SqlServerStatement _statement = _builder.Build();
 
-        _statement
+        return _statement
             .SetSql(SelectImage)
-            .AddInParameter("Id", id);
-
-        return _statement.ScalarBinary();
+            .AddInParameter("Id", id)
+            .ScalarBinary();
     }
 
     public async Task<byte[]?> GetAsync(int id)
     {
         SqlServerStatement _statement = _builder.Build();
 
-        _statement
+        return await _statement
             .SetSql(SelectImage)
-            .AddInParameter("Id", id);
-
-        return await _statement.ScalarBinaryAsync();
+            .AddInParameter("Id", id)
+            .ScalarBinaryAsync();
     }
 
     public void Save(int id, byte[] data)
@@ -37,20 +35,18 @@ internal class ImageService(ISqlServerStatementBuilder builder) : IImageService
         _statement
             .SetSql(UpdateImage)
             .AddInParameter("Image", data)
-            .AddInParameter("Id", id);
-
-        _statement.Execute();
+            .AddInParameter("Id", id)
+            .Execute();
     }
 
     public async Task SaveAsync(int id, byte[] data)
     {
         SqlServerStatement _statement = _builder.Build();
 
-        _statement
+        await _statement
             .SetSql(UpdateImage)
             .AddInParameter("Image", data)
-            .AddInParameter("Id", id);
-
-        await _statement.ExecuteAsync();
+            .AddInParameter("Id", id)
+            .ExecuteAsync();
     }
 }

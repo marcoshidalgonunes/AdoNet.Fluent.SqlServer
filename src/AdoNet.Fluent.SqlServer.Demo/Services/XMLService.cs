@@ -220,9 +220,8 @@ internal sealed class XMLService(ISqlServerStatementBuilder builder) : IXMLServi
 
         statement
             .SetSql(FindDemographics)
-            .AddInParameter("BusinessEntityID", id);
-
-        statement.ScalarXml(FillXml);
+            .AddInParameter("BusinessEntityID", id)
+            .ScalarXml(FillXml);
 
         return _storeSurvey;
     }
@@ -230,11 +229,11 @@ internal sealed class XMLService(ISqlServerStatementBuilder builder) : IXMLServi
     public async Task<StoreSurvey> FindAsync(int id)
     {
         using SqlServerStatement statement = builder.Build();
-        statement
+        
+        await statement
             .SetSql(FindDemographics)
-            .AddInParameter("BusinessEntityID", id);
-
-        await statement.ScalarXmlAsync(FillXmlAsync);
+            .AddInParameter("BusinessEntityID", id)
+            .ScalarXmlAsync(FillXmlAsync);
 
         return _storeSurvey;
     }
@@ -247,9 +246,8 @@ internal sealed class XMLService(ISqlServerStatementBuilder builder) : IXMLServi
 
         statement
             .SetSql(SelectDemographics)
-            .AddInParameter("SalesPersonID", id);
-
-        statement.Read(SetOrdinal, Fill);
+            .AddInParameter("SalesPersonID", id)
+            .Read(SetOrdinal, Fill);
 
         return _storesSurvey;
     }
@@ -260,11 +258,10 @@ internal sealed class XMLService(ISqlServerStatementBuilder builder) : IXMLServi
 
         using SqlServerStatement statement = builder.Build();
 
-        statement
+        await statement
             .SetSql(SelectDemographics)
-            .AddInParameter("SalesPersonID", id);
-
-        await statement.ReadAsync(SetOrdinal, Fill);
+            .AddInParameter("SalesPersonID", id)
+            .ReadAsync(SetOrdinal, Fill);
 
         return _storesSurvey;
     }
@@ -277,9 +274,8 @@ internal sealed class XMLService(ISqlServerStatementBuilder builder) : IXMLServi
         statement
             .SetSql(UpdateDemographics)
             .AddInParameter("Demographics", xmlReader)
-            .AddInParameter("SalesPersonID", id);
-
-        statement.Execute();
+            .AddInParameter("SalesPersonID", id)
+            .Execute();
     }
 
     public async Task UpdateAsync(int id, StoreSurvey storeSurvey)
@@ -287,12 +283,11 @@ internal sealed class XMLService(ISqlServerStatementBuilder builder) : IXMLServi
         using SqlServerStatement statement = builder.Build();
         using XmlReader xmlReader = ConvertToXml(storeSurvey);
 
-        statement
+        await statement
             .SetSql(UpdateDemographics)
             .AddInParameter("Demographics", xmlReader)
-            .AddInParameter("SalesPersonID", id);
-
-        await statement.ExecuteAsync();
+            .AddInParameter("SalesPersonID", id)
+            .ExecuteAsync();
     }
 
     #endregion

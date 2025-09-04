@@ -37,13 +37,12 @@ internal sealed class TransactionService(ISqlServerTransactionBuilder builder) :
 
         try
         {
-            transaction
+            departmentId = transaction
                 .SetSql(InsertDepartment)
                 .AddInParameter("Name", department.Name, 50)
                 .AddInParameter("GroupName", department.GroupName, 50)
-                .AddInParameter("ModifiedDate", department.ModifiedDate);
-
-            departmentId = transaction.ScalarInt32() ?? 0;
+                .AddInParameter("ModifiedDate", department.ModifiedDate)
+                .ScalarInt32() ?? 0;
 
             EmployeeDepartmentHistory employeeDepartmentHistory = new()
             {
@@ -58,9 +57,8 @@ internal sealed class TransactionService(ISqlServerTransactionBuilder builder) :
                     .SetSql(InsertDepartmentHistory)
                     .AddInParameter("BusinessEntityID", employeeDepartmentHistory.Id)
                     .AddInParameter("DepartmentId", employeeDepartmentHistory.DepartmentID)
-                    .AddInParameter("ShiftID", employeeDepartmentHistory.ShiftID);
-
-                transaction.Execute();
+                    .AddInParameter("ShiftID", employeeDepartmentHistory.ShiftID)
+                    .Execute();
 
                 transaction.Commit();
             }
@@ -85,17 +83,15 @@ internal sealed class TransactionService(ISqlServerTransactionBuilder builder) :
 
         try
         {
-            transaction
+            await transaction
                 .SetSql(DeleteDepartmentHistory)
-                .AddInParameter("DepartmentID", departmentId);
+                .AddInParameter("DepartmentID", departmentId)
+                .ExecuteAsync();
 
-            await transaction.ExecuteAsync();
-
-            transaction
+            await transaction
                 .SetSql(DeleteDepartment)
-                .AddInParameter("DepartmentID", departmentId);
-
-            await transaction.ExecuteAsync();
+                .AddInParameter("DepartmentID", departmentId)
+                .ExecuteAsync();
 
             transaction.Commit();
         }

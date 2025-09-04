@@ -27,9 +27,9 @@ internal class PrepareService(ISqlServerStatementBuilder builder) : IPrepareServ
 
         for (int i = 0; i < businessEntityID.Length; i++)
         {
-            statement.SetParameter("BusinessEntityID", businessEntityID[i]);
-
-            statement.Execute();
+            statement
+                .SetParameter("BusinessEntityID", businessEntityID[i])
+                .Execute();
         }   
     }
 
@@ -46,9 +46,9 @@ internal class PrepareService(ISqlServerStatementBuilder builder) : IPrepareServ
 
         for (int i = 0; i < businessEntityID.Length; i++)
         {
-            statement.SetParameter("BusinessEntityID", businessEntityID[i]);
-
-            await statement.ExecuteAsync();
+            await statement
+                .SetParameter("BusinessEntityID", businessEntityID[i])
+                .ExecuteAsync();
         }
     }
 }

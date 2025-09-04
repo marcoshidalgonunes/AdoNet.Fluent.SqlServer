@@ -1,5 +1,4 @@
-﻿using AdoNet.Fluent;
-using AdoNet.Fluent.SqlServer.Demo.Models;
+﻿using AdoNet.Fluent.SqlServer.Demo.Models;
 
 namespace AdoNet.Fluent.SqlServer.Demo.Services;
 
@@ -41,13 +40,12 @@ internal sealed class CRUDService(ISqlServerStatementBuilder builder) : ICRUDSer
     {
         using SqlServerStatement _statement = _builder.Build();
 
-        _statement
+        int? id = _statement
             .SetSql(InsertDepartment)
             .AddInParameter("Name", department.Name, 50)
             .AddInParameter("GroupName", department.GroupName, 50)
-            .AddInParameter("ModifiedDate", department.ModifiedDate);
-
-        int? id = _statement.ScalarInt32();
+            .AddInParameter("ModifiedDate", department.ModifiedDate)
+            .ScalarInt32();
 
         return id ?? 0;
     }
@@ -56,13 +54,12 @@ internal sealed class CRUDService(ISqlServerStatementBuilder builder) : ICRUDSer
     {
         using SqlServerStatement _statement = _builder.Build();
 
-        _statement
+        int? id = await _statement
             .SetSql(InsertDepartment)
             .AddInParameter("Name", department.Name, 50)
             .AddInParameter("GroupName", department.GroupName, 50)
-            .AddInParameter("ModifiedDate", department.ModifiedDate);
-
-        int? id = await _statement.ScalarInt32Async();
+            .AddInParameter("ModifiedDate", department.ModifiedDate)
+            .ScalarInt32Async();
 
         return id ?? 0;
     }
@@ -73,20 +70,18 @@ internal sealed class CRUDService(ISqlServerStatementBuilder builder) : ICRUDSer
 
         _statement
             .SetSql(DeleteDepartment)
-            .AddInParameter("DepartmentID", id);
-
-        _statement.Execute();
+            .AddInParameter("DepartmentID", id)
+            .Execute();
     }
 
     public async Task DeleteAsync(int id)
     {
         using SqlServerStatement _statement = _builder.Build();
 
-        _statement
+        await _statement
             .SetSql(DeleteDepartment)
-            .AddInParameter("DepartmentID", id);
-
-        await _statement.ExecuteAsync();
+            .AddInParameter("DepartmentID", id)
+            .ExecuteAsync();
     }
 
     public Department Read(int id)
@@ -103,9 +98,8 @@ internal sealed class CRUDService(ISqlServerStatementBuilder builder) : ICRUDSer
             .AddInParameter("DepartmentID", id)
             .AddOutParameter("Name", 50)
             .AddOutParameter("GroupName", 50)
-            .AddOutParameter("ModifiedDate", NumericType.DateTime);
-
-        _statement.Execute();
+            .AddOutParameter("ModifiedDate", NumericType.DateTime)
+            .Execute();
 
         department.Name = _statement.GetString("Name");
         department.GroupName = _statement.GetString("GroupName");
@@ -123,14 +117,13 @@ internal sealed class CRUDService(ISqlServerStatementBuilder builder) : ICRUDSer
 
         using SqlServerStatement _statement = _builder.Build();
 
-        _statement
+        await _statement
             .SetSql(SelectDepartment)
             .AddInParameter("DepartmentID", id)
             .AddOutParameter("Name", 50)
             .AddOutParameter("GroupName", 50)
-            .AddOutParameter("ModifiedDate", NumericType.DateTime);
-
-        await _statement.ExecuteAsync();
+            .AddOutParameter("ModifiedDate", NumericType.DateTime)
+            .ExecuteAsync();
 
         department.Name = _statement.GetString("Name");
         department.GroupName = _statement.GetString("GroupName");
@@ -148,22 +141,20 @@ internal sealed class CRUDService(ISqlServerStatementBuilder builder) : ICRUDSer
             .AddInParameter("Name", department.Name, 50)
             .AddInParameter("GroupName", department.GroupName, 50)
             .AddInParameter("ModifiedDate", department.ModifiedDate)
-            .AddInParameter("DepartmentID", department.Id);
-
-        _statement.Execute();
+            .AddInParameter("DepartmentID", department.Id)
+            .Execute();
     }
 
     public async Task UpdateAsync(Department department)
     {
         using SqlServerStatement _statement = _builder.Build();
 
-        _statement
+        await _statement
             .SetSql(UpdateDepartment)
             .AddInParameter("Name", department.Name, 50)
             .AddInParameter("GroupName", department.GroupName, 50)
             .AddInParameter("ModifiedDate", department.ModifiedDate)
-            .AddInParameter("DepartmentID", department.Id);
-
-        await _statement.ExecuteAsync();
+            .AddInParameter("DepartmentID", department.Id)
+            .ExecuteAsync();
     }
 }
