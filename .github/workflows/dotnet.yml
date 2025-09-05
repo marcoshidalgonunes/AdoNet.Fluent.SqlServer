@@ -1,0 +1,32 @@
+name: AdoNet.Fluent.SqlServer Build and Publish
+
+on:
+  workflow_dispatch: # Manual trigger; change to 'push' or other if desired
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      BUILD_CONFIGURATION: Release
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.100'
+
+    - name: Restore NuGet Packages
+      run: dotnet restore src/AdoNet.Fluent.SqlServer/AdoNet.Fluent.SqlServer.sln
+
+    - name: Build Solution
+      run: dotnet build src/AdoNet.Fluent.SqlServer/AdoNet.Fluent.SqlServer.sln --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+
+    - name: Pack Project
+      run: dotnet pack src/AdoNet.Fluent.SqlServer/AdoNet.Fluent.SqlServer.csproj --configuration ${{ env.BUILD_CONFIGURATION }} --output ${{ github.workspace }}/artifacts
+
+    - name: Publish NuGet Package
+      run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
