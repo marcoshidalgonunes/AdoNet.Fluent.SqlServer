@@ -77,8 +77,6 @@ public sealed class Department
     public string? GroupName { get; set; }
 
     public DateTime ModifiedDate { get; set; }
-
-    public List<Shift>? Shifts { get; set; }
 }
 
 public sealed class CRUDRepository(ISqlServerStatementBuilder builder)
@@ -237,7 +235,6 @@ public sealed class CRUDRepository(ISqlServerStatementBuilder builder)
             .ExecuteAsync();
     }
 }
-
 ```
 
 ### Read many lines
@@ -248,7 +245,7 @@ The example below shows a repository class that implements read multiple lines:
 ```csharp
 using System.Data;
 using System.Data.Common;
-using AdoNet.Fluent;
+using AdoNet.Fluent.SqlServer;
 
 public class Hierarchy
 {
@@ -269,7 +266,7 @@ public class Hierarchy
 
 public sealed class ReadRepository(ISqlServerStatementBuilder builder)
 {
-    private readonly IDataObjectBuilder<SqlServerStatement> _builder = builder;
+    private readonly ISqlServerStatementBuilder _builder = builder;
 
     private readonly List<Hierarchy> _hierarchies = [];
 
@@ -301,8 +298,6 @@ public sealed class ReadRepository(ISqlServerStatementBuilder builder)
         ordLastName = reader.GetOrdinal("LastName");
     }
 
-    #region IReadService<Hierarchy> members
-
     public List<Hierarchy> Read(int id)
     {
         using SqlServerStatement statement = _builder.Build();
@@ -326,8 +321,710 @@ public sealed class ReadRepository(ISqlServerStatementBuilder builder)
         
         return _hierarchies;
     }
+}
+```
 
-    #endregion
+### Read Multiple Active Result Sets (MARS)
+
+AdoNet.Fluent.SqlServer supports [MARS](https://learn.microsoft.com/en-us/sql/relational-databases/native-client/features/using-multiple-active-result-sets-mars) feature of SQL Server.
+
+It is enabled via `WithMARS()` method of `SqlServerStatementBuilder`, therefore is no need to enable MARS in connection string configuration. 
+
+```csharp
+using System.Data;
+using System.Data.Common;
+using AdoNet.Fluent.SqlServer;
+
+public sealed class Department
+{
+    public int Id { get; set; }
+
+    public string? Name { get; set; }
+
+    public string? GroupName { get; set; }
+
+    public DateTime ModifiedDate { get; set; }
+
+    public List<Shift>? Shifts { get; set; }
 }
 
+public sealed class Shift
+{
+    public int Id { get; set; }
+
+    public string? Name { get; set; }
+}
+
+public class MARSRepository(ISqlServerStatementBuilder builder)
+{
+    private readonly ISqlServerStatementBuilder _builder = builder;
+
+    private SqlServerStatement? _statement;
+
+    private readonly List<Department> _departments = [];
+
+    private readonly List<Shift> _shifts = [];
+
+    private int ordDeptId, ordName, ordGroupName, ordModifiedDate, ordShiftId, ordShiftName;
+
+    private const string SelectDepartment = @"
+        SELECT 
+            DepartmentID,
+            [Name],
+            GroupName,
+            ModifiedDate
+        FROM HumanResources.Department 
+        WHERE GroupName = @GroupName
+    ";
+
+    private const string SelectShift = @"
+        SELECT DISTINCT
+            S.ShiftID,
+            S.[Name]
+        FROM HumanResources.[Shift] S 
+        INNER JOIN HumanResources.EmployeeDepartmentHistory EDH
+        ON S.ShiftID = EDH.DepartmentID
+        WHERE EDH.DepartmentID = @DepartmentID
+    ";
+
+    private void FillDepartment(DbDataReader reader)
+    {
+        short departmentId = reader.GetInt16(ordDeptId);
+        _shifts.Clear();
+
+        _statement?.SetParameter("DepartmentID", departmentId);
+        _statement?.Read(SetOrdinalShift, FillShift);
+
+        _departments.Add(new Department()
+        {
+            Id = departmentId,
+            Name = reader.GetString(ordName),
+            GroupName = reader.GetString(ordGroupName),
+            ModifiedDate = reader.GetDateTime(ordModifiedDate),
+            Shifts = new List<Shift>(_shifts)
+        });
+    }
+
+    private void FillShift(DbDataReader reader)
+    {
+        _shifts.Add(new Shift { Id = reader.GetByte(ordShiftId), Name = reader.GetString(ordShiftName) });   
+    }
+
+    private void SetOrdinalDepartment(IDataRecord reader)
+    {
+        ordDeptId = reader.GetOrdinal("DepartmentID");
+        ordName = reader.GetOrdinal("Name");
+        ordGroupName = reader.GetOrdinal("GroupName");
+        ordModifiedDate = reader.GetOrdinal("ModifiedDate");
+
+        _statement?
+            .SetSql(SelectShift)
+            .AddInParameter("DepartmentID", NumericType.Int16);
+    }
+
+    private void SetOrdinalShift(IDataRecord reader)
+    {
+        ordShiftId = reader.GetOrdinal("ShiftID");
+        ordShiftName = reader.GetOrdinal("Name");
+    }
+
+    public List<Department> Read(string name)
+    {
+        using (_statement = _builder.WithMARS().Build())
+        {
+            _statement
+                .SetSql(SelectDepartment)
+                .AddInParameter("GroupName", name, 50)
+                .Read(SetOrdinalDepartment, FillDepartment);
+        }
+
+        return _departments;
+    }
+
+    public async Task<List<Department>> ReadAsync(string name)
+    {
+        using (_statement = _builder.WithMARS().Build())
+        {
+            await _statement
+                .SetSql(SelectDepartment)
+                .AddInParameter("GroupName", name, 50)
+                .ReadAsync(SetOrdinalDepartment, FillDepartment);
+        }
+
+        return _departments;
+    }
+}
+```
+
+### Operations with Binary data
+
+AdoNet.Fluent.SqlServer supports operations with binary data (e.g. media content such as images, audio and video).
+
+> **Note** This example also shows how to get values from queries that bings only one row and column via "Scalar" methods, which are available for other data types.
+
+```csharp
+using AdoNet.Fluent.SqlServer;
+
+public class ImageRepository(ISqlServerStatementBuilder builder)
+{
+    private readonly ISqlServerStatementBuilder _builder = builder;
+
+    private const string SelectImage = "SELECT ThumbNailPhoto FROM Production.ProductPhoto WHERE ProductPhotoID = @Id";
+
+    private const string UpdateImage = "UPDATE Production.ProductPhoto SET ThumbNailPhoto = @Image WHERE ProductPhotoID = @Id";
+
+    public byte[]? Get(int id)
+    {
+        SqlServerStatement _statement = _builder.Build();
+
+        return _statement
+            .SetSql(SelectImage)
+            .AddInParameter("Id", id)
+            .ScalarBinary();
+    }
+
+    public async Task<byte[]?> GetAsync(int id)
+    {
+        SqlServerStatement _statement = _builder.Build();
+
+        return await _statement
+            .SetSql(SelectImage)
+            .AddInParameter("Id", id)
+            .ScalarBinaryAsync();
+    }
+
+    public void Save(int id, byte[] data)
+    {
+        SqlServerStatement _statement = _builder.Build();
+
+        _statement
+            .SetSql(UpdateImage)
+            .AddInParameter("Image", data)
+            .AddInParameter("Id", id)
+            .Execute();
+    }
+
+    public async Task SaveAsync(int id, byte[] data)
+    {
+        SqlServerStatement _statement = _builder.Build();
+
+        await _statement
+            .SetSql(UpdateImage)
+            .AddInParameter("Image", data)
+            .AddInParameter("Id", id)
+            .ExecuteAsync();
+    }
+}
+```
+
+### Operations with XML data
+
+AdoNet.Fluent.SqlServer supports SQL Server features to deal with [XML](https://en.wikipedia.org/wiki/XML) data.
+
+> **Note** This example also shows how to get values from queries that bings only one row and column via "Scalar" methods, which are available for other data types.
+
+```csharp
+using System.Data;
+using System.Data.Common;
+using System.Xml;
+using AdoNet.Fluent.SqlServer;
+
+public class StoreSurvey
+{
+    public int AnnualSales { get; set; }
+
+    public int AnnualRevenue { get; set; }
+
+    public string? BankName { get; set; }
+
+    public string? BusinessType { get; set; }
+
+    public int YearOpened { get; set; } 
+
+    public string? Specialty { get; set; }
+
+    public int SquareFeet { get; set; }
+
+    public string? Brands { get; set; }
+
+    public string? Internet { get; set; }
+
+    public int NumberEmployees { get; set; }
+}
+
+public sealed class XMLRepository(ISqlServerStatementBuilder builder)
+{
+    private StoreSurvey _storeSurvey = new();
+
+    private readonly List<StoreSurvey> _storesSurvey = [];
+
+    private const string FindDemographics = @"
+        SELECT Demographics from Sales.Store 
+        WHERE BusinessEntityID = @BusinessEntityID
+    ";
+
+    private const string SelectDemographics = @"
+        SELECT Demographics from Sales.Store 
+        WHERE SalesPersonID = @SalesPersonID
+    ";
+
+    private const string UpdateDemographics = @"
+        UPDATE Sales.Store
+            SET Demographics = @Demographics
+        WHERE SalesPersonID = @SalesPersonID
+    ";
+
+    private int ordDemographics;
+
+    private static XmlNodeReader ConvertToXml(StoreSurvey storeSurvey)
+    {
+        XmlDocument doc = new();
+
+        XmlElement root = doc.CreateElement("StoreSurvey", "http://schemas.microsoft.com/sqlserver/2004/07/adventure-works/StoreSurvey");
+        doc.AppendChild(root);
+
+        string? namespaceUri = doc.DocumentElement?.NamespaceURI;
+
+        XmlElement annualSales = doc.CreateElement("AnnualSales", namespaceUri);
+        annualSales.InnerText = storeSurvey.AnnualSales.ToString();
+        root.AppendChild(annualSales);
+
+        XmlElement annualRevenue = doc.CreateElement("AnnualRevenue", namespaceUri);
+        annualRevenue.InnerText = storeSurvey.AnnualRevenue.ToString();
+        root.AppendChild(annualRevenue);
+
+        XmlElement bankName = doc.CreateElement("BankName", namespaceUri);
+        bankName.InnerText = storeSurvey.BankName ?? string.Empty;
+        root.AppendChild(bankName);
+
+        XmlElement businessType = doc.CreateElement("BusinessType", namespaceUri);
+        businessType.InnerText = storeSurvey.BusinessType ?? string.Empty;
+        root.AppendChild(businessType);
+
+        XmlElement yearOpened = doc.CreateElement("YearOpened", namespaceUri);
+        yearOpened.InnerText = storeSurvey.YearOpened.ToString();
+        root.AppendChild(yearOpened);
+
+        XmlElement specialty = doc.CreateElement("Specialty", namespaceUri);
+        specialty.InnerText = storeSurvey.Specialty ?? string.Empty;
+        root.AppendChild(specialty);
+
+        XmlElement squareFeet = doc.CreateElement("SquareFeet", namespaceUri);
+        squareFeet.InnerText = storeSurvey.SquareFeet.ToString();
+        root.AppendChild(squareFeet);
+
+        XmlElement brands = doc.CreateElement("Brands", namespaceUri);
+        brands.InnerText = storeSurvey.Brands ?? string.Empty;
+        root.AppendChild(brands);
+
+        XmlElement internet = doc.CreateElement("Internet", namespaceUri);
+        internet.InnerText = storeSurvey.Internet ?? string.Empty;
+        root.AppendChild(internet);
+
+        XmlElement numberEmployees = doc.CreateElement("NumberEmployees", namespaceUri);
+        numberEmployees.InnerText = storeSurvey.NumberEmployees.ToString();
+        root.AppendChild(numberEmployees);
+
+        return new XmlNodeReader(doc);
+    }
+
+    private void Fill(DbDataReader reader)
+    {
+        using XmlReader? salesReaderXml = reader.GetXml(ordDemographics);
+        if (salesReaderXml is not null)
+        {
+            StoreSurvey storeSurvey = GetStoreSurvey(salesReaderXml);
+            _storesSurvey.Add(storeSurvey);
+        }
+    }
+
+    private void FillXml(XmlReader salesReaderXml)
+    {
+        _storeSurvey = GetStoreSurvey(salesReaderXml);
+    }
+
+    private async Task FillXmlAsync(XmlReader salesReaderXml)
+    {
+        _storeSurvey = await GetStoreSurveyAsync(salesReaderXml);
+    }
+
+    private static StoreSurvey GetStoreSurvey(XmlReader salesReaderXml)
+    {
+        StoreSurvey storeSurvey = new();
+
+        while (salesReaderXml.Read())
+        {
+            if (salesReaderXml.NodeType == XmlNodeType.Element)
+            {
+                var elementLocalName = salesReaderXml.LocalName;
+                salesReaderXml.Read();
+
+                switch (elementLocalName)
+                {
+                    case "AnnualSales":
+                        storeSurvey.AnnualSales = Convert.ToInt32(salesReaderXml.Value);
+                        break;
+                    case "AnnualRevenue":
+                        storeSurvey.AnnualRevenue = Convert.ToInt32(salesReaderXml.Value);
+                        break;
+                    case "BankName":
+                        storeSurvey.BankName = salesReaderXml.Value;
+                        break;
+                    case "BusinessType":
+                        storeSurvey.BusinessType = salesReaderXml.Value;
+                        break;
+                    case "YearOpened":
+                        storeSurvey.YearOpened = Convert.ToInt32(salesReaderXml.Value);
+                        break;
+                    case "Specialty":
+                        storeSurvey.Specialty = salesReaderXml.Value;
+                        break;
+                    case "SquareFeet":
+                        storeSurvey.SquareFeet = Convert.ToInt32(salesReaderXml.Value);
+                        break;
+                    case "Brands":
+                        storeSurvey.Brands = salesReaderXml.Value;
+                        break;
+                    case "Internet":
+                        storeSurvey.Internet = salesReaderXml.Value;
+                        break;
+                    case "NumberEmployees":
+                        storeSurvey.NumberEmployees = Convert.ToInt32(salesReaderXml.Value);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        return storeSurvey;
+    }
+
+    private static async Task<StoreSurvey> GetStoreSurveyAsync(XmlReader salesReaderXml)
+    {
+        StoreSurvey storeSurvey = new();
+
+        while (await salesReaderXml.ReadAsync())
+        {
+            if (salesReaderXml.NodeType == XmlNodeType.Element)
+            {
+                var elementLocalName = salesReaderXml.LocalName;
+                await salesReaderXml.ReadAsync();
+
+                switch (elementLocalName)
+                {
+                    case "AnnualSales":
+                        storeSurvey.AnnualSales = Convert.ToInt32(salesReaderXml.Value);
+                        break;
+                    case "AnnualRevenue":
+                        storeSurvey.AnnualRevenue = Convert.ToInt32(salesReaderXml.Value);
+                        break;
+                    case "BankName":
+                        storeSurvey.BankName = salesReaderXml.Value;
+                        break;
+                    case "BusinessType":
+                        storeSurvey.BusinessType = salesReaderXml.Value;
+                        break;
+                    case "YearOpened":
+                        storeSurvey.YearOpened = Convert.ToInt32(salesReaderXml.Value);
+                        break;
+                    case "Specialty":
+                        storeSurvey.Specialty = salesReaderXml.Value;
+                        break;
+                    case "SquareFeet":
+                        storeSurvey.SquareFeet = Convert.ToInt32(salesReaderXml.Value);
+                        break;
+                    case "Brands":
+                        storeSurvey.Brands = salesReaderXml.Value;
+                        break;
+                    case "Internet":
+                        storeSurvey.Internet = salesReaderXml.Value;
+                        break;
+                    case "NumberEmployees":
+                        storeSurvey.NumberEmployees = Convert.ToInt32(salesReaderXml.Value);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        return storeSurvey;
+    }
+
+    private void SetOrdinal(IDataRecord reader)
+    {
+        ordDemographics = reader.GetOrdinal("Demographics");
+    }
+
+    public StoreSurvey Find(int id)
+    {
+        using SqlServerStatement statement = builder.Build();
+
+        statement
+            .SetSql(FindDemographics)
+            .AddInParameter("BusinessEntityID", id)
+            .ScalarXml(FillXml);
+
+        return _storeSurvey;
+    }
+
+    public async Task<StoreSurvey> FindAsync(int id)
+    {
+        using SqlServerStatement statement = builder.Build();
+        
+        await statement
+            .SetSql(FindDemographics)
+            .AddInParameter("BusinessEntityID", id)
+            .ScalarXmlAsync(FillXmlAsync);
+
+        return _storeSurvey;
+    }
+
+    public List<StoreSurvey> Read(int id)
+    {
+        _storesSurvey.Clear();
+
+        using SqlServerStatement statement = builder.Build();
+
+        statement
+            .SetSql(SelectDemographics)
+            .AddInParameter("SalesPersonID", id)
+            .Read(SetOrdinal, Fill);
+
+        return _storesSurvey;
+    }
+
+    public async Task<List<StoreSurvey>> ReadAsync(int id)
+    {
+        _storesSurvey.Clear();
+
+        using SqlServerStatement statement = builder.Build();
+
+        await statement
+            .SetSql(SelectDemographics)
+            .AddInParameter("SalesPersonID", id)
+            .ReadAsync(SetOrdinal, Fill);
+
+        return _storesSurvey;
+    }
+
+    public void Update(int id, StoreSurvey storeSurvey)
+    {
+        using SqlServerStatement statement = builder.Build();
+        using XmlReader xmlReader = ConvertToXml(storeSurvey);
+
+        statement
+            .SetSql(UpdateDemographics)
+            .AddInParameter("Demographics", xmlReader)
+            .AddInParameter("SalesPersonID", id)
+            .Execute();
+    }
+
+    public async Task UpdateAsync(int id, StoreSurvey storeSurvey)
+    {
+        using SqlServerStatement statement = builder.Build();
+        using XmlReader xmlReader = ConvertToXml(storeSurvey);
+
+        await statement
+            .SetSql(UpdateDemographics)
+            .AddInParameter("Demographics", xmlReader)
+            .AddInParameter("SalesPersonID", id)
+            .ExecuteAsync();
+    }
+}
+```
+
+### Operations with prepared statements
+
+AdoNet.Fluent.SqlServer supports ADO.Net prepared statements features, which increases performance when the same SQL operation is executed multiple times only changing values of parameters.
+
+> **Note** The async method of example below is for sake of simplicity. Of course there are better ways to delete rows in a table.
+
+```csharp
+using AdoNet.Fluent.SqlServer;
+
+public class PrepareRepository(ISqlServerStatementBuilder builder)
+{
+    private const string InsertDepartmentHistory = @"
+        INSERT INTO HumanResources.EmployeeDepartmentHistory
+            (BusinessEntityID, DepartmentId, ShiftID, StartDate, ModifiedDate)
+        VALUES 
+            (@BusinessEntityID, @DepartmentId, 3, CONVERT(Date, GETDATE()), GETDATE())
+    ";
+
+    private const string DeleteDepartmentHistory = @"
+        DELETE FROM HumanResources.EmployeeDepartmentHistory
+        WHERE BusinessEntityID = @BusinessEntityID And DepartmentID = @DepartmentID AND ShiftID = 3
+    ";
+
+    public void Execute(int departmentId, int[] businessEntityID)
+    {
+        using SqlServerStatement statement = builder.Build();
+
+        statement
+            .SetSql(InsertDepartmentHistory)
+            .AddInParameter("BusinessEntityID", NumericType.Int32)
+            .AddInParameter("DepartmentID", departmentId);
+
+        statement.Prepare();
+
+        for (int i = 0; i < businessEntityID.Length; i++)
+        {
+            statement
+                .SetParameter("BusinessEntityID", businessEntityID[i])
+                .Execute();
+        }   
+    }
+
+    public async Task ExecuteAsync(int departmentId, int[] businessEntityID)
+    {
+        using SqlServerStatement statement = builder.Build();
+
+        statement
+            .SetSql(DeleteDepartmentHistory)
+            .AddInParameter("BusinessEntityID", NumericType.Int32)
+            .AddInParameter("DepartmentID", departmentId);
+
+        await statement.PrepareAsync();
+
+        for (int i = 0; i < businessEntityID.Length; i++)
+        {
+            await statement
+                .SetParameter("BusinessEntityID", businessEntityID[i])
+                .ExecuteAsync();
+        }
+    }
+}
+```
+
+### Database transactions handling
+
+AdoNet.Fluent.SqlServer supports SQL Server transactions handling via ADO.Net client with `SqlServerTransaction` class and its corresponding `SqlServerTransactionBuilder`.
+
+> **Note** The async method of example below is for sake of simplicity. Of course there are better ways to delete rows in tables.
+
+```csharp
+using AdoNet.Fluent.SqlServer;
+
+
+public sealed class Department
+{
+    public int Id { get; set; }
+
+    public string? Name { get; set; }
+
+    public string? GroupName { get; set; }
+
+    public DateTime ModifiedDate { get; set; }
+}
+
+public class EmployeeDepartmentHistory : Entity
+{
+    public int Id { get; set; }
+
+    public int DepartmentID { get; set; }
+
+    public int ShiftID { get; set; }
+}
+
+public sealed class TransactionRepository(ISqlServerTransactionBuilder builder)
+{
+    private const string InsertDepartment = @"
+        INSERT INTO HumanResources.Department
+            ([Name], GroupName, ModifiedDate)
+        OUTPUT INSERTED.DepartmentID
+        VALUES 
+            (@Name, @GroupName, @ModifiedDate)
+    ";
+
+    private const string InsertDepartmentHistory = @"
+        INSERT INTO HumanResources.EmployeeDepartmentHistory
+            (BusinessEntityID, DepartmentId, ShiftID, StartDate, ModifiedDate)
+        VALUES 
+            (@BusinessEntityID, @DepartmentId, @ShiftID, CONVERT(Date, GETDATE()), GETDATE())
+    ";
+
+    private const string DeleteDepartmentHistory = @"
+        DELETE FROM HumanResources.EmployeeDepartmentHistory
+        WHERE DepartmentID = @DepartmentID
+    ";
+
+    private const string DeleteDepartment = @"
+        DELETE FROM HumanResources.Department
+        WHERE DepartmentID = @DepartmentID
+    ";
+
+    public int Execute(Department department)
+    {
+        int departmentId;
+        using SqlServerTransaction transaction = builder.Build();
+
+        try
+        {
+            departmentId = transaction
+                .SetSql(InsertDepartment)
+                .AddInParameter("Name", department.Name, 50)
+                .AddInParameter("GroupName", department.GroupName, 50)
+                .AddInParameter("ModifiedDate", department.ModifiedDate)
+                .ScalarInt32() ?? 0;
+
+            EmployeeDepartmentHistory employeeDepartmentHistory = new()
+            {
+                Id = 1,
+                ShiftID = 1,
+                DepartmentID = departmentId
+            };
+            
+            if (employeeDepartmentHistory.DepartmentID > 0)
+            {
+                transaction
+                    .SetSql(InsertDepartmentHistory)
+                    .AddInParameter("BusinessEntityID", employeeDepartmentHistory.Id)
+                    .AddInParameter("DepartmentId", employeeDepartmentHistory.DepartmentID)
+                    .AddInParameter("ShiftID", employeeDepartmentHistory.ShiftID)
+                    .Execute();
+
+                transaction.Commit();
+            }
+            else
+            {
+                transaction.Rollback();
+            }
+        }
+        catch (Exception)
+        {
+            transaction.Rollback();
+            throw;
+        }
+
+        return departmentId;   
+    }
+
+    public async Task ExecuteAsync(Department department)
+    {
+        int? departmentId = department.Id;
+        using SqlServerTransaction transaction = builder.Build();
+
+        try
+        {
+            await transaction
+                .SetSql(DeleteDepartmentHistory)
+                .AddInParameter("DepartmentID", departmentId)
+                .ExecuteAsync();
+
+            await transaction
+                .SetSql(DeleteDepartment)
+                .AddInParameter("DepartmentID", departmentId)
+                .ExecuteAsync();
+
+            transaction.Commit();
+        }
+        catch (Exception)
+        {
+            transaction.Rollback();
+            throw;
+        }
+    }
+}
 ```
